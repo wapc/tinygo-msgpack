@@ -148,6 +148,7 @@ func (d *DataReader) SetFloat32(value float32) error {
 	}
 	bits := math.Float32bits(value)
 	binary.BigEndian.PutUint32(d.buffer[d.byteOffset:], bits)
+	d.byteOffset += 4
 	return nil
 }
 
@@ -157,6 +158,7 @@ func (d *DataReader) SetFloat64(value float64) error {
 	}
 	bits := math.Float64bits(value)
 	binary.BigEndian.PutUint64(d.buffer[d.byteOffset:], bits)
+	d.byteOffset += 8
 	return nil
 }
 
