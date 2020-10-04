@@ -59,6 +59,7 @@ func (d *DataReader) GetFloat32() (float32, error) {
 		return 0, ErrRange
 	}
 	v := binary.BigEndian.Uint32(d.buffer[d.byteOffset:])
+	d.byteOffset += 4
 	return math.Float32frombits(v), nil
 }
 
@@ -67,6 +68,7 @@ func (d *DataReader) GetFloat64() (float64, error) {
 		return 0, ErrRange
 	}
 	v := binary.BigEndian.Uint64(d.buffer[d.byteOffset:])
+	d.byteOffset += 8
 	return math.Float64frombits(v), nil
 }
 
