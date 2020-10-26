@@ -1,6 +1,8 @@
 package msgpack
 
-import "math"
+import (
+	"math"
+)
 
 type Encoder struct {
 	reader DataReader
@@ -72,16 +74,16 @@ func (e *Encoder) WriteUint64(value uint64) {
 	if value < 1<<7 {
 		e.reader.SetUint8(uint8(value))
 	} else if value <= math.MaxUint8 {
-		e.reader.SetUint8(FormatInt8)
+		e.reader.SetUint8(FormatUint8)
 		e.reader.SetUint8(uint8(value))
 	} else if value <= math.MaxUint16 {
-		e.reader.SetUint8(FormatInt16)
+		e.reader.SetUint8(FormatUint16)
 		e.reader.SetUint16(uint16(value))
 	} else if value <= math.MaxUint32 {
-		e.reader.SetUint8(FormatInt32)
+		e.reader.SetUint8(FormatUint32)
 		e.reader.SetUint32(uint32(value))
 	} else {
-		e.reader.SetUint8(FormatInt64)
+		e.reader.SetUint8(FormatUint64)
 		e.reader.SetUint64(value)
 	}
 }

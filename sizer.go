@@ -53,11 +53,11 @@ func (s *Sizer) WriteArraySize(length uint32) {
 
 func (s *Sizer) writeBinLength(length uint32) {
 	if length < math.MaxUint8 {
-		s.length += 2
+		s.length += 1
 	} else if length <= math.MaxUint16 {
-		s.length += 3
+		s.length += 2
 	} else {
-		s.length += 5
+		s.length += 4
 	}
 }
 

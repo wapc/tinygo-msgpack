@@ -50,7 +50,7 @@ func (d *Decoder) ReadInt8() (int8, error) {
 	}
 	return 0, ReadError{
 		"interger overflow: value = " +
-			strconv.FormatInt(v, 64) +
+			strconv.FormatInt(v, 10) +
 			"; bits = 8",
 	}
 }
@@ -65,7 +65,7 @@ func (d *Decoder) ReadInt16() (int16, error) {
 	}
 	return 0, ReadError{
 		"interger overflow: value = " +
-			strconv.FormatInt(v, 64) +
+			strconv.FormatInt(v, 10) +
 			"; bits = 16",
 	}
 }
@@ -80,7 +80,7 @@ func (d *Decoder) ReadInt32() (int32, error) {
 	}
 	return 0, ReadError{
 		"interger overflow: value = " +
-			strconv.FormatInt(v, 64) +
+			strconv.FormatInt(v, 10) +
 			"; bits = 32",
 	}
 }
@@ -92,7 +92,7 @@ func (d *Decoder) ReadInt64() (int64, error) {
 	}
 
 	if isFixedInt(prefix) || isNegativeFixedInt(prefix) {
-		return int64(prefix), nil
+		return int64(int8(prefix)), nil
 	}
 	switch prefix {
 	case FormatInt8:
