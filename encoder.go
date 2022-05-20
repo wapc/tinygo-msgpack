@@ -114,7 +114,7 @@ func (e *Encoder) writeStringLength(length uint32) {
 }
 
 func (e *Encoder) WriteString(value string) {
-	valueBytes := UnsafeBytes(value)
+	valueBytes := []byte(value)
 	e.writeStringLength(uint32(len(valueBytes)))
 	e.reader.SetBytes(valueBytes)
 }

@@ -19,7 +19,7 @@ func (s *Sizer) WriteNil() {
 }
 
 func (s *Sizer) WriteString(value string) {
-	buf := UnsafeBytes(value)
+	buf := []byte(value)
 	length := uint32(len(buf))
 	s.writeStringLength(length)
 	s.length += length

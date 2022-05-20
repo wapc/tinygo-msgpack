@@ -219,7 +219,7 @@ func (d *Decoder) ReadString() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return UnsafeString(strBytes), nil
+	return string(strBytes), nil
 }
 
 func (d *Decoder) readStringLength() (uint32, error) {

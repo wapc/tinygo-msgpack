@@ -1,6 +1,6 @@
 package msgpack
 
-// Writer is the interface for writing data using the MessagPack format.
+// Writer is the interface for writing data using the MessagePack format.
 type Writer interface {
 	WriteNil()
 	WriteBool(value bool)
