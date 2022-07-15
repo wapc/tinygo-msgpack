@@ -21,8 +21,8 @@ func NewDataReader(buffer []byte) DataReader {
 }
 
 func (d *DataReader) GetBytes(length uint32) ([]byte, error) {
-	if d.byteOffset+length > uint32(len(d.buffer)) {
-		return nil, ErrRange
+	if err := d.checkBufferSize(length); err != nil {
+		return nil, err
 	}
 	result := d.buffer[d.byteOffset : d.byteOffset+length]
 	d.byteOffset += length
@@ -31,8 +31,8 @@ func (d *DataReader) GetBytes(length uint32) ([]byte, error) {
 
 func (d *DataReader) SetBytes(src []byte) error {
 	srcLen := uint32(len(src))
-	if d.byteOffset+srcLen > uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(srcLen); err != nil {
+		return err
 	}
 	copy(d.buffer[d.byteOffset:], src)
 	d.byteOffset += srcLen
@@ -40,23 +40,23 @@ func (d *DataReader) SetBytes(src []byte) error {
 }
 
 func (d *DataReader) PeekUint8() (uint8, error) {
-	if d.byteOffset >= uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(1); err != nil {
+		return 0, err
 	}
 	return d.buffer[d.byteOffset], nil
 }
 
 func (d *DataReader) Discard(length uint32) error {
-	if d.byteOffset+length > uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(length); err != nil {
+		return err
 	}
 	d.byteOffset += length
 	return nil
 }
 
 func (d *DataReader) GetFloat32() (float32, error) {
-	if d.byteOffset+4 > uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(4); err != nil {
+		return 0, err
 	}
 	v := binary.BigEndian.Uint32(d.buffer[d.byteOffset:])
 	d.byteOffset += 4
@@ -64,8 +64,8 @@ func (d *DataReader) GetFloat32() (float32, error) {
 }
 
 func (d *DataReader) GetFloat64() (float64, error) {
-	if d.byteOffset+8 > uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(8); err != nil {
+		return 0, err
 	}
 	v := binary.BigEndian.Uint64(d.buffer[d.byteOffset:])
 	d.byteOffset += 8
@@ -73,8 +73,8 @@ func (d *DataReader) GetFloat64() (float64, error) {
 }
 
 func (d *DataReader) GetInt8() (int8, error) {
-	if d.byteOffset >= uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(1); err != nil {
+		return 0, err
 	}
 	result := d.buffer[d.byteOffset]
 	d.byteOffset++
@@ -82,8 +82,8 @@ func (d *DataReader) GetInt8() (int8, error) {
 }
 
 func (d *DataReader) GetInt16() (int16, error) {
-	if d.byteOffset+2 > uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(2); err != nil {
+		return 0, err
 	}
 	result := binary.BigEndian.Uint16(d.buffer[d.byteOffset:])
 	d.byteOffset += 2
@@ -91,8 +91,8 @@ func (d *DataReader) GetInt16() (int16, error) {
 }
 
 func (d *DataReader) GetInt32() (int32, error) {
-	if d.byteOffset+4 > uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(4); err != nil {
+		return 0, err
 	}
 	result := binary.BigEndian.Uint32(d.buffer[d.byteOffset:])
 	d.byteOffset += 4
@@ -100,8 +100,8 @@ func (d *DataReader) GetInt32() (int32, error) {
 }
 
 func (d *DataReader) GetInt64() (int64, error) {
-	if d.byteOffset+8 > uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(8); err != nil {
+		return 0, err
 	}
 	result := binary.BigEndian.Uint64(d.buffer[d.byteOffset:])
 	d.byteOffset += 8
@@ -109,8 +109,8 @@ func (d *DataReader) GetInt64() (int64, error) {
 }
 
 func (d *DataReader) GetUint8() (uint8, error) {
-	if d.byteOffset >= uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(1); err != nil {
+		return 0, err
 	}
 	result := d.buffer[d.byteOffset]
 	d.byteOffset++
@@ -118,8 +118,8 @@ func (d *DataReader) GetUint8() (uint8, error) {
 }
 
 func (d *DataReader) GetUint16() (uint16, error) {
-	if d.byteOffset+2 > uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(2); err != nil {
+		return 0, err
 	}
 	result := binary.BigEndian.Uint16(d.buffer[d.byteOffset:])
 	d.byteOffset += 2
@@ -127,8 +127,8 @@ func (d *DataReader) GetUint16() (uint16, error) {
 }
 
 func (d *DataReader) GetUint32() (uint32, error) {
-	if d.byteOffset+4 > uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(4); err != nil {
+		return 0, err
 	}
 	result := binary.BigEndian.Uint32(d.buffer[d.byteOffset:])
 	d.byteOffset += 4
@@ -136,8 +136,8 @@ func (d *DataReader) GetUint32() (uint32, error) {
 }
 
 func (d *DataReader) GetUint64() (uint64, error) {
-	if d.byteOffset+8 > uint32(len(d.buffer)) {
-		return 0, ErrRange
+	if err := d.checkBufferSize(8); err != nil {
+		return 0, err
 	}
 	result := binary.BigEndian.Uint64(d.buffer[d.byteOffset:])
 	d.byteOffset += 8
@@ -145,8 +145,8 @@ func (d *DataReader) GetUint64() (uint64, error) {
 }
 
 func (d *DataReader) SetFloat32(value float32) error {
-	if d.byteOffset+4 > uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(4); err != nil {
+		return err
 	}
 	bits := math.Float32bits(value)
 	binary.BigEndian.PutUint32(d.buffer[d.byteOffset:], bits)
@@ -155,8 +155,8 @@ func (d *DataReader) SetFloat32(value float32) error {
 }
 
 func (d *DataReader) SetFloat64(value float64) error {
-	if d.byteOffset+8 > uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(8); err != nil {
+		return err
 	}
 	bits := math.Float64bits(value)
 	binary.BigEndian.PutUint64(d.buffer[d.byteOffset:], bits)
@@ -165,8 +165,8 @@ func (d *DataReader) SetFloat64(value float64) error {
 }
 
 func (d *DataReader) SetInt8(value int8) error {
-	if d.byteOffset >= uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(1); err != nil {
+		return err
 	}
 	d.buffer[d.byteOffset] = uint8(value)
 	d.byteOffset++
@@ -174,8 +174,8 @@ func (d *DataReader) SetInt8(value int8) error {
 }
 
 func (d *DataReader) SetInt16(value int16) error {
-	if d.byteOffset+2 > uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(2); err != nil {
+		return err
 	}
 	binary.BigEndian.PutUint16(d.buffer[d.byteOffset:], uint16(value))
 	d.byteOffset += 2
@@ -183,8 +183,8 @@ func (d *DataReader) SetInt16(value int16) error {
 }
 
 func (d *DataReader) SetInt32(value int32) error {
-	if d.byteOffset+4 > uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(4); err != nil {
+		return err
 	}
 	binary.BigEndian.PutUint32(d.buffer[d.byteOffset:], uint32(value))
 	d.byteOffset += 4
@@ -192,8 +192,8 @@ func (d *DataReader) SetInt32(value int32) error {
 }
 
 func (d *DataReader) SetInt64(value int64) error {
-	if d.byteOffset+8 > uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(8); err != nil {
+		return err
 	}
 	binary.BigEndian.PutUint64(d.buffer[d.byteOffset:], uint64(value))
 	d.byteOffset += 8
@@ -201,8 +201,8 @@ func (d *DataReader) SetInt64(value int64) error {
 }
 
 func (d *DataReader) SetUint8(value uint8) error {
-	if d.byteOffset >= uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(1); err != nil {
+		return err
 	}
 	d.buffer[d.byteOffset] = value
 	d.byteOffset++
@@ -210,8 +210,8 @@ func (d *DataReader) SetUint8(value uint8) error {
 }
 
 func (d *DataReader) SetUint16(value uint16) error {
-	if d.byteOffset+2 > uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(2); err != nil {
+		return err
 	}
 	binary.BigEndian.PutUint16(d.buffer[d.byteOffset:], value)
 	d.byteOffset += 2
@@ -219,8 +219,8 @@ func (d *DataReader) SetUint16(value uint16) error {
 }
 
 func (d *DataReader) SetUint32(value uint32) error {
-	if d.byteOffset+4 > uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(4); err != nil {
+		return err
 	}
 	binary.BigEndian.PutUint32(d.buffer[d.byteOffset:], value)
 	d.byteOffset += 4
@@ -228,10 +228,26 @@ func (d *DataReader) SetUint32(value uint32) error {
 }
 
 func (d *DataReader) SetUint64(value uint64) error {
-	if d.byteOffset+8 > uint32(len(d.buffer)) {
-		return ErrRange
+	if err := d.checkBufferSize(8); err != nil {
+		return err
 	}
 	binary.BigEndian.PutUint64(d.buffer[d.byteOffset:], value)
 	d.byteOffset += 8
 	return nil
+}
+
+func (d *DataReader) checkBufferSize(length uint32) error {
+	if d.err != nil {
+		return d.err
+	}
+	if d.byteOffset+length > uint32(len(d.buffer)) {
+		d.err = ErrRange
+		return ErrRange
+	}
+
+	return nil
+}
+
+func (d *DataReader) Err() error {
+	return d.err
 }

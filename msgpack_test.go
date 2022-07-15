@@ -28,7 +28,7 @@ type Required struct {
 	MapValue    map[string]int64
 }
 
-func DecodeRequiredNullable(decoder *msgpack.Decoder) (*Required, error) {
+func DecodeRequiredNullable(decoder msgpack.Reader) (*Required, error) {
 	if isNil, err := decoder.IsNextNil(); isNil || err != nil {
 		return nil, err
 	}
@@ -36,13 +36,13 @@ func DecodeRequiredNullable(decoder *msgpack.Decoder) (*Required, error) {
 	return &decoded, err
 }
 
-func DecodeRequired(decoder *msgpack.Decoder) (Required, error) {
+func DecodeRequired(decoder msgpack.Reader) (Required, error) {
 	var o Required
 	err := o.Decode(decoder)
 	return o, err
 }
 
-func (o *Required) Decode(decoder *msgpack.Decoder) error {
+func (o *Required) Decode(decoder msgpack.Reader) error {
 	numFields, err := decoder.ReadMapSize()
 	if err != nil {
 		return err

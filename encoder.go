@@ -165,3 +165,7 @@ func (e *Encoder) WriteMapSize(length uint32) {
 		e.reader.SetUint32(length)
 	}
 }
+
+func (e *Encoder) Err() error {
+	return e.reader.Err()
+}

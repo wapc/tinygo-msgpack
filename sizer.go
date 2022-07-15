@@ -133,3 +133,7 @@ func (s *Sizer) WriteFloat32(value float32) {
 func (s *Sizer) WriteFloat64(value float64) {
 	s.length += 9
 }
+
+func (s *Sizer) Err() error {
+	return nil
+}

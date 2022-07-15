@@ -1,4 +1,5 @@
-// +build wasm
+//go:build wasm || tinygo.wasm || wasi
+// +build wasm tinygo.wasm wasi
 
 package msgpack
 

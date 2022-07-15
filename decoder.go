@@ -122,7 +122,7 @@ func (d *Decoder) ReadUint8() (uint8, error) {
 	}
 	return 0, ReadError{
 		"interger overflow: value = " +
-			strconv.FormatUint(v, 64) +
+			strconv.FormatUint(v, 10) +
 			"; bits = 8",
 	}
 }
@@ -137,7 +137,7 @@ func (d *Decoder) ReadUint16() (uint16, error) {
 	}
 	return 0, ReadError{
 		"interger overflow: value = " +
-			strconv.FormatUint(v, 64) +
+			strconv.FormatUint(v, 10) +
 			"; bits = 16",
 	}
 }
@@ -152,7 +152,7 @@ func (d *Decoder) ReadUint32() (uint32, error) {
 	}
 	return 0, ReadError{
 		"interger overflow: value = " +
-			strconv.FormatUint(v, 64) +
+			strconv.FormatUint(v, 10) +
 			"; bits = 32",
 	}
 }
@@ -437,6 +437,10 @@ func (d *Decoder) getSize() (uint32, error) {
 	}
 
 	return objectsToDiscard, nil
+}
+
+func (d *Decoder) Err() error {
+	return d.reader.Err()
 }
 
 ////////////////////
