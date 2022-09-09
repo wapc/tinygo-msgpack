@@ -40,6 +40,18 @@ func (d *Decoder) ReadBool() (bool, error) {
 	return false, ReadError{"bad value for bool"}
 }
 
+func (d *Decoder) ReadNillableBool() (*bool, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadBool()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
+}
+
 func (d *Decoder) ReadInt8() (int8, error) {
 	v, err := d.ReadInt64()
 	if err != nil {
@@ -53,6 +65,18 @@ func (d *Decoder) ReadInt8() (int8, error) {
 			strconv.FormatInt(v, 10) +
 			"; bits = 8",
 	}
+}
+
+func (d *Decoder) ReadNillableInt8() (*int8, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadInt8()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
 }
 
 func (d *Decoder) ReadInt16() (int16, error) {
@@ -70,6 +94,18 @@ func (d *Decoder) ReadInt16() (int16, error) {
 	}
 }
 
+func (d *Decoder) ReadNillableInt16() (*int16, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadInt16()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
+}
+
 func (d *Decoder) ReadInt32() (int32, error) {
 	v, err := d.ReadInt64()
 	if err != nil {
@@ -83,6 +119,18 @@ func (d *Decoder) ReadInt32() (int32, error) {
 			strconv.FormatInt(v, 10) +
 			"; bits = 32",
 	}
+}
+
+func (d *Decoder) ReadNillableInt32() (*int32, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadInt32()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
 }
 
 func (d *Decoder) ReadInt64() (int64, error) {
@@ -112,6 +160,18 @@ func (d *Decoder) ReadInt64() (int64, error) {
 	}
 }
 
+func (d *Decoder) ReadNillableInt64() (*int64, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadInt64()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
+}
+
 func (d *Decoder) ReadUint8() (uint8, error) {
 	v, err := d.ReadUint64()
 	if err != nil {
@@ -125,6 +185,18 @@ func (d *Decoder) ReadUint8() (uint8, error) {
 			strconv.FormatUint(v, 10) +
 			"; bits = 8",
 	}
+}
+
+func (d *Decoder) ReadNillableUint8() (*uint8, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadUint8()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
 }
 
 func (d *Decoder) ReadUint16() (uint16, error) {
@@ -142,6 +214,18 @@ func (d *Decoder) ReadUint16() (uint16, error) {
 	}
 }
 
+func (d *Decoder) ReadNillableUint16() (*uint16, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadUint16()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
+}
+
 func (d *Decoder) ReadUint32() (uint32, error) {
 	v, err := d.ReadUint64()
 	if err != nil {
@@ -155,6 +239,18 @@ func (d *Decoder) ReadUint32() (uint32, error) {
 			strconv.FormatUint(v, 10) +
 			"; bits = 32",
 	}
+}
+
+func (d *Decoder) ReadNillableUint32() (*uint32, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadUint32()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
 }
 
 func (d *Decoder) ReadUint64() (uint64, error) {
@@ -186,6 +282,18 @@ func (d *Decoder) ReadUint64() (uint64, error) {
 	}
 }
 
+func (d *Decoder) ReadNillableUint64() (*uint64, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadUint64()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
+}
+
 func (d *Decoder) ReadFloat32() (float32, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
@@ -194,8 +302,23 @@ func (d *Decoder) ReadFloat32() (float32, error) {
 
 	if prefix == FormatFloat32 {
 		return d.reader.GetFloat32()
+	} else if prefix == FormatFloat64 {
+		v, err := d.reader.GetFloat64()
+		return float32(v), err
 	}
 	return 0, ReadError{"bad prefix for float32"}
+}
+
+func (d *Decoder) ReadNillableFloat32() (*float32, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadFloat32()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
 }
 
 func (d *Decoder) ReadFloat64() (float64, error) {
@@ -210,16 +333,33 @@ func (d *Decoder) ReadFloat64() (float64, error) {
 	return 0, ReadError{"bad prefix for float64"}
 }
 
+func (d *Decoder) ReadNillableFloat64() (*float64, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadFloat64()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
+}
+
 func (d *Decoder) ReadString() (string, error) {
 	strLen, err := d.readStringLength()
-	if err != nil {
-		return "", err
+	return d.readString(strLen, err)
+}
+
+func (d *Decoder) ReadNillableString() (*string, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
 	}
-	strBytes, err := d.reader.GetBytes(strLen)
+	val, err := d.ReadString()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return UnsafeString(strBytes), nil
+	return &val, err
 }
 
 func (d *Decoder) readStringLength() (uint32, error) {
@@ -248,6 +388,17 @@ func (d *Decoder) readStringLength() (uint32, error) {
 	return 0, ReadError{"bad prefix for string length"}
 }
 
+func (d *Decoder) readString(strLen uint32, err error) (string, error) {
+	if err != nil {
+		return "", err
+	}
+	strBytes, err := d.reader.GetBytes(strLen)
+	if err != nil {
+		return "", err
+	}
+	return UnsafeString(strBytes), nil
+}
+
 func (d *Decoder) ReadByteArray() ([]byte, error) {
 	binLen, err := d.readBinLength()
 	if err != nil {
@@ -258,6 +409,14 @@ func (d *Decoder) ReadByteArray() ([]byte, error) {
 		return nil, err
 	}
 	return binBytes, nil
+}
+
+func (d *Decoder) ReadNillableByteArray() ([]byte, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	return d.ReadByteArray()
 }
 
 func (d *Decoder) readBinLength() (uint32, error) {
@@ -439,8 +598,176 @@ func (d *Decoder) getSize() (uint32, error) {
 	return objectsToDiscard, nil
 }
 
+func (d *Decoder) ReadAny() (any, error) {
+	prefix, err := d.reader.GetUint8()
+	if err != nil {
+		return false, err
+	}
+
+	if isFixedInt(prefix) || isNegativeFixedInt(prefix) {
+		return int64(int8(prefix)), nil
+	}
+
+	if isFixedString(prefix) {
+		strLen := uint32(prefix & 0x1f)
+		return d.readString(strLen, nil)
+	}
+
+	if isFixedArray(prefix) {
+		aryLen := uint32(prefix & FormatFourLeastSigBitsInByte)
+		ary := make([]any, aryLen)
+		err := d.readArray(ary)
+		return ary, err
+	}
+
+	if isFixedMap(prefix) {
+		mapLen := uint32(prefix & FormatFourLeastSigBitsInByte)
+		m := make(map[any]any, mapLen)
+		err := d.readMap(m, mapLen)
+		return m, err
+	}
+
+	switch prefix {
+	case FormatNil:
+		return nil, nil
+	case FormatTrue:
+		return true, nil
+	case FormatFalse:
+		return false, nil
+	case FormatInt8:
+		return d.reader.GetInt8()
+	case FormatInt16:
+		return d.reader.GetInt16()
+	case FormatInt32:
+		return d.reader.GetInt32()
+	case FormatInt64:
+		return d.reader.GetInt64()
+	case FormatUint8:
+		return d.reader.GetUint8()
+	case FormatUint16:
+		return d.reader.GetUint16()
+	case FormatUint32:
+		return d.reader.GetUint32()
+	case FormatUint64:
+		return d.reader.GetUint64()
+	case FormatFloat32:
+		return d.reader.GetFloat32()
+	case FormatFloat64:
+		return d.reader.GetFloat64()
+	case FormatString8:
+		v, err := d.reader.GetUint8()
+		return d.readString(uint32(v), err)
+	case FormatString16:
+		v, err := d.reader.GetUint16()
+		return d.readString(uint32(v), err)
+	case FormatString32:
+		v, err := d.reader.GetUint32()
+		return d.readString(uint32(v), err)
+	case FormatArray16:
+		v, err := d.reader.GetUint16()
+		if err != nil {
+			return nil, err
+		}
+		ary := make([]any, v)
+		err = d.readArray(ary)
+		return ary, err
+	case FormatArray32:
+		v, err := d.reader.GetUint32()
+		if err != nil {
+			return nil, err
+		}
+		ary := make([]any, v)
+		err = d.readArray(ary)
+		return ary, err
+	case FormatMap16:
+		v, err := d.reader.GetUint16()
+		if err != nil {
+			return nil, err
+		}
+		m := make(map[any]any, v)
+		err = d.readMap(m, uint32(v))
+		return m, err
+	case FormatMap32:
+		v, err := d.reader.GetUint32()
+		if err != nil {
+			return nil, err
+		}
+		m := make(map[any]any, v)
+		err = d.readMap(m, v)
+		return m, err
+	case FormatBin8:
+		binLen, err := d.reader.GetUint8()
+		if err != nil {
+			return nil, err
+		}
+		return d.reader.GetBytes(uint32(binLen))
+	case FormatBin16:
+		binLen, err := d.reader.GetUint16()
+		if err != nil {
+			return nil, err
+		}
+		return d.reader.GetBytes(uint32(binLen))
+	case FormatBin32:
+		binLen, err := d.reader.GetUint32()
+		if err != nil {
+			return nil, err
+		}
+		return d.reader.GetBytes(binLen)
+	}
+
+	return nil, ReadError{"bad value for bool"}
+}
+
+func (d *Decoder) readArray(array []any) error {
+	for i := 0; i < len(array); i++ {
+		value, err := d.ReadAny()
+		if err != nil {
+			return err
+		}
+		array[i] = value
+	}
+	return nil
+}
+
+func (d *Decoder) readMap(m map[any]any, length uint32) error {
+	for i := uint32(0); i < length; i++ {
+		key, err := d.ReadAny()
+		if err != nil {
+			return err
+		}
+		value, err := d.ReadAny()
+		if err != nil {
+			return err
+		}
+		m[key] = value
+	}
+	return nil
+}
+
 func (d *Decoder) Err() error {
 	return d.reader.Err()
+}
+
+func Decode[T any, PT interface {
+	*T
+	Codec
+}](decoder Reader) (T, error) {
+	var inst T
+	err := ((PT)(&inst)).Decode(decoder)
+	return inst, err
+}
+
+func DecodeNillable[T any, PT interface {
+	*T
+	Codec
+}](decoder Reader) (PT, error) {
+	if isNil, err := decoder.IsNextNil(); isNil || err != nil {
+		return nil, err
+	}
+
+	codec := PT(new(T))
+	err := codec.Decode(decoder)
+	return codec, err
 }
 
 ////////////////////
