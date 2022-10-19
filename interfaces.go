@@ -1,5 +1,9 @@
 package msgpack
 
+import (
+	"time"
+)
+
 // Reader is the interface for reading data from the MessagePack format.
 type Reader interface {
 	IsNextNil() (bool, error)
@@ -27,6 +31,8 @@ type Reader interface {
 	ReadNillableFloat64() (*float64, error)
 	ReadString() (string, error)
 	ReadNillableString() (*string, error)
+	ReadTime() (time.Time, error)
+	ReadNillableTime() (*time.Time, error)
 	ReadByteArray() ([]byte, error)
 	ReadNillableByteArray() ([]byte, error)
 	ReadArraySize() (uint32, error)
@@ -63,6 +69,8 @@ type Writer interface {
 	WriteNillableFloat64(value *float64)
 	WriteString(value string)
 	WriteNillableString(value *string)
+	WriteTime(value time.Time)
+	WriteNillableTime(value *time.Time)
 	WriteByteArray(value []byte)
 	WriteNillableByteArray(value []byte)
 	WriteArraySize(length uint32)

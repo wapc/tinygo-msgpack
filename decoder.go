@@ -1,8 +1,10 @@
 package msgpack
 
 import (
+	"encoding/binary"
 	"math"
 	"strconv"
+	"time"
 )
 
 type Decoder struct {
@@ -345,6 +347,80 @@ func (d *Decoder) ReadNillableFloat64() (*float64, error) {
 	return &val, err
 }
 
+func (d *Decoder) ReadTime() (time.Time, error) {
+	prefix, err := d.reader.PeekUint8()
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	if isString(prefix) {
+		str, err := d.ReadString()
+		if err != nil {
+			return time.Time{}, err
+		}
+		return time.Parse(time.RFC3339Nano, str)
+	}
+
+	d.reader.Discard(1)
+	extID, extLen, err := d.extHeader(prefix)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	// NodeJS seems to use extID 13.
+	if extID != -1 && extID != 13 {
+		return time.Time{}, ReadError{"msgpack: invalid time ext id=" + strconv.FormatUint(uint64(extID), 10)}
+	}
+
+	tm, err := d.decodeTime(extLen)
+	if err != nil {
+		return tm, err
+	}
+
+	if tm.IsZero() {
+		// Zero time does not have timezone information.
+		return tm.UTC(), nil
+	}
+
+	return tm, nil
+}
+
+func (d *Decoder) ReadNillableTime() (*time.Time, error) {
+	isNil, err := d.IsNextNil()
+	if isNil || err != nil {
+		return nil, err
+	}
+	val, err := d.ReadTime()
+	if err != nil {
+		return nil, err
+	}
+	return &val, err
+}
+
+func (d *Decoder) decodeTime(extLen uint32) (time.Time, error) {
+	b, err := d.reader.GetBytes(extLen)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	switch len(b) {
+	case 4:
+		sec := binary.BigEndian.Uint32(b)
+		return time.Unix(int64(sec), 0), nil
+	case 8:
+		sec := binary.BigEndian.Uint64(b)
+		nsec := int64(sec >> 34)
+		sec &= 0x00000003ffffffff
+		return time.Unix(int64(sec), nsec), nil
+	case 12:
+		nsec := binary.BigEndian.Uint32(b)
+		sec := binary.BigEndian.Uint64(b[4:])
+		return time.Unix(int64(sec), int64(nsec)), nil
+	default:
+		return time.Time{}, ReadError{"msgpack: invalid time ext len=" + strconv.FormatUint(uint64(extLen), 10)}
+	}
+}
+
 func (d *Decoder) ReadString() (string, error) {
 	strLen, err := d.readStringLength()
 	return d.readString(strLen, err)
@@ -378,13 +454,14 @@ func (d *Decoder) readStringLength() (uint32, error) {
 	case FormatString8:
 		v, err := d.reader.GetUint8()
 		return uint32(v), err
-	case FormatString16:
+	case FormatString16, FormatArray16:
 		v, err := d.reader.GetUint16()
 		return uint32(v), err
-	case FormatString32:
+	case FormatString32, FormatArray32:
 		v, err := d.reader.GetUint32()
 		return v, err
 	}
+
 	return 0, ReadError{"bad prefix for string length"}
 }
 
@@ -744,6 +821,54 @@ func (d *Decoder) readMap(m map[any]any, length uint32) error {
 	return nil
 }
 
+func (d *Decoder) extHeader(c byte) (int8, uint32, error) {
+	extLen, err := d.parseExtLen(c)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	extID, err := d.readCode()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return int8(extID), extLen, nil
+}
+
+func (d *Decoder) readCode() (byte, error) {
+	c, err := d.reader.GetUint8()
+	if err != nil {
+		return 0, err
+	}
+	return c, nil
+}
+
+func (d *Decoder) parseExtLen(c byte) (uint32, error) {
+	switch c {
+	case FormatFixExt1:
+		return 1, nil
+	case FormatFixExt2:
+		return 2, nil
+	case FormatFixExt4:
+		return 4, nil
+	case FormatFixExt8:
+		return 8, nil
+	case FormatFixExt16:
+		return 16, nil
+	case FormatExt8:
+		n, err := d.ReadUint8()
+		return uint32(n), err
+	case FormatExt16:
+		n, err := d.ReadUint16()
+		return uint32(n), err
+	case FormatExt32:
+		n, err := d.ReadUint32()
+		return n, err
+	default:
+		return 0, ReadError{"msgpack: invalid code=" + strconv.FormatUint(uint64(c), 16) + " decoding ext len"}
+	}
+}
+
 func (d *Decoder) Err() error {
 	return d.reader.Err()
 }
@@ -795,6 +920,16 @@ func isFixedArray(u byte) bool {
 //go:inline
 func isFixedString(u byte) bool {
 	return (u & 0xe0) == FormatFixString
+}
+
+func isString(u byte) bool {
+	return isFixedString(u) ||
+		u == FormatString8 ||
+		u == FormatString16 ||
+		u == FormatString32 ||
+		isFixedArray(u) ||
+		u == FormatArray16 ||
+		u == FormatArray32
 }
 
 type ReadError struct {

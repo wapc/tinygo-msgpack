@@ -1,6 +1,9 @@
 package msgpack
 
-import "math"
+import (
+	"math"
+	"time"
+)
 
 type Sizer struct {
 	length uint32
@@ -42,6 +45,50 @@ func (s *Sizer) writeStringLength(length uint32) {
 		s.length += 3
 	} else {
 		s.length += 5
+	}
+}
+
+func (s *Sizer) WriteTime(value time.Time) {
+	l := s.encodeTime(value)
+	s.encodeExtLen(l)
+	s.length += 1 + uint32(l)
+}
+
+func (s *Sizer) encodeTime(tm time.Time) int {
+	secs := uint64(tm.Unix())
+	if secs>>34 == 0 {
+		data := uint64(tm.Nanosecond())<<34 | secs
+
+		if data&0xffffffff00000000 == 0 {
+			return 4
+		}
+
+		return 8
+	}
+
+	return 12
+}
+
+func (s *Sizer) encodeExtLen(l int) {
+	switch l {
+	case 1, 2, 4, 8, 16:
+		s.length++
+		return
+	}
+	if l <= math.MaxUint8 {
+		s.length += 2
+	} else if l <= math.MaxUint16 {
+		s.length += 3
+	} else {
+		s.length += 5
+	}
+}
+
+func (s *Sizer) WriteNillableTime(value *time.Time) {
+	if value == nil {
+		s.WriteNil()
+	} else {
+		s.WriteTime(*value)
 	}
 }
 
@@ -265,6 +312,8 @@ func (s *Sizer) WriteAny(value any) {
 		s.WriteFloat64(v)
 	case string:
 		s.WriteString(v)
+	case time.Time:
+		s.WriteTime(v)
 	case []byte:
 		s.WriteByteArray(v)
 	case []interface{}:
@@ -278,6 +327,12 @@ func (s *Sizer) WriteAny(value any) {
 		s.WriteArraySize(size)
 		for _, v := range v {
 			s.WriteString(v)
+		}
+	case []time.Time:
+		size := uint32(len(v))
+		s.WriteArraySize(size)
+		for _, v := range v {
+			s.WriteTime(v)
 		}
 	case []bool:
 		size := uint32(len(v))

@@ -1,7 +1,9 @@
 package msgpack
 
 import (
+	"encoding/binary"
 	"math"
+	"time"
 )
 
 type Encoder struct {
@@ -213,6 +215,44 @@ func (e *Encoder) WriteNillableString(value *string) {
 	} else {
 		e.WriteString(*value)
 	}
+}
+
+func (e *Encoder) WriteTime(tm time.Time) {
+	var timeBuf [12]byte
+	b := e.encodeTime(tm, timeBuf[:])
+	e.encodeExtLen(len(b))
+	e.reader.SetInt8(-1)
+	e.reader.SetBytes(b)
+}
+
+func (e *Encoder) WriteNillableTime(value *time.Time) {
+	if value == nil {
+		e.WriteNil()
+	} else {
+		e.WriteTime(*value)
+	}
+}
+
+func (e *Encoder) encodeTime(tm time.Time, timeBuf []byte) []byte {
+	secs := uint64(tm.Unix())
+	if secs>>34 == 0 {
+		data := uint64(tm.Nanosecond())<<34 | secs
+
+		if data&0xffffffff00000000 == 0 {
+			b := timeBuf[:4]
+			binary.BigEndian.PutUint32(b, uint32(data))
+			return b
+		}
+
+		b := timeBuf[:8]
+		binary.BigEndian.PutUint64(b, data)
+		return b
+	}
+
+	b := timeBuf[:12]
+	binary.BigEndian.PutUint32(b, uint32(tm.Nanosecond()))
+	binary.BigEndian.PutUint64(b[4:], secs)
+	return b
 }
 
 func (e *Encoder) writeBinLength(length uint32) {
@@ -475,6 +515,53 @@ func (e *Encoder) WriteAny(value any) {
 			e.WriteAny(v)
 		}
 	}
+}
+
+func (e *Encoder) encodeExtLen(l int) error {
+	switch l {
+	case 1:
+		return e.reader.SetUint8(FormatFixExt1)
+	case 2:
+		return e.reader.SetUint8(FormatFixExt2)
+	case 4:
+		return e.reader.SetUint8(FormatFixExt4)
+	case 8:
+		return e.reader.SetUint8(FormatFixExt8)
+	case 16:
+		return e.reader.SetUint8(FormatFixExt16)
+	}
+	if l <= math.MaxUint8 {
+		return e.write1(FormatExt8, uint8(l))
+	}
+	if l <= math.MaxUint16 {
+		return e.write2(FormatExt16, uint16(l))
+	}
+	return e.write4(FormatExt32, uint32(l))
+}
+
+func (e *Encoder) write1(code byte, n uint8) error {
+	var buf [2]byte
+	buf[0] = code
+	buf[1] = n
+	return e.reader.SetBytes(buf[:])
+}
+
+func (e *Encoder) write2(code byte, n uint16) error {
+	var buf [3]byte
+	buf[0] = code
+	buf[1] = byte(n >> 8)
+	buf[2] = byte(n)
+	return e.reader.SetBytes(buf[:])
+}
+
+func (e *Encoder) write4(code byte, n uint32) error {
+	var buf [5]byte
+	buf[0] = code
+	buf[1] = byte(n >> 24)
+	buf[2] = byte(n >> 16)
+	buf[3] = byte(n >> 8)
+	buf[4] = byte(n)
+	return e.reader.SetBytes(buf[:])
 }
 
 func (e *Encoder) Err() error {
