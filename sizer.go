@@ -127,7 +127,7 @@ func (s *Sizer) writeBinLength(length uint32) {
 func (s *Sizer) WriteByteArray(value []byte) {
 	length := uint32(len(value))
 	if length == 0 {
-		s.length++
+		s.length += 2
 		return
 	}
 	s.writeBinLength(length)

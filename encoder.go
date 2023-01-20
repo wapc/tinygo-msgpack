@@ -271,7 +271,8 @@ func (e *Encoder) writeBinLength(length uint32) {
 func (e *Encoder) WriteByteArray(value []byte) {
 	valueLen := uint32(len(value))
 	if valueLen == 0 {
-		e.WriteNil()
+		e.reader.SetUint8(FormatBin8)
+		e.reader.SetUint8(0)
 		return
 	}
 	e.writeBinLength(valueLen)
