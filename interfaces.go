@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+type Raw []byte
+
 // Reader is the interface for reading data from the MessagePack format.
 type Reader interface {
 	IsNextNil() (bool, error)
@@ -38,6 +40,7 @@ type Reader interface {
 	ReadArraySize() (uint32, error)
 	ReadMapSize() (uint32, error)
 	ReadAny() (any, error)
+	ReadRaw() (Raw, error)
 	Skip() error
 	Err() error
 }
@@ -76,5 +79,6 @@ type Writer interface {
 	WriteArraySize(length uint32)
 	WriteMapSize(length uint32)
 	WriteAny(value any)
+	WriteRaw(value Raw)
 	Err() error
 }

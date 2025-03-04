@@ -1,14 +1,26 @@
 package msgpack
 
-// Codec is the interface that applies to data structures that can
-// encode to and decode from the MessagPack format.
-type Codec interface {
+import (
+	"time"
+)
+
+type ReaderDecoder interface {
 	Decode(Reader) error
+}
+
+type WriterEncoder interface {
 	Encode(Writer) error
 }
 
+// Codec is the interface that applies to data structures that can
+// encode to and decode from the MessagPack format.
+type Codec interface {
+	ReaderDecoder
+	WriterEncoder
+}
+
 // ToBytes creates a `[]byte` from `codec`.
-func ToBytes(codec Codec) ([]byte, error) {
+func ToBytes(codec WriterEncoder) ([]byte, error) {
 	var sizer Sizer
 	if err := codec.Encode(&sizer); err != nil {
 		return nil, err
@@ -21,8 +33,23 @@ func ToBytes(codec Codec) ([]byte, error) {
 	return buffer, nil
 }
 
+//go:inline
+func Marshal(value any) ([]byte, error) {
+	return AnyToBytes(value)
+}
+
+func Unmarshal(data []byte, value ReaderDecoder) error {
+	decoder := NewDecoder(data)
+	return value.Decode(&decoder)
+}
+
+func BytesToAny(data []byte) (any, error) {
+	d := NewDecoder(data)
+	return d.ReadAny()
+}
+
 // AnyToBytes creates a `[]byte` from `value`.
-func AnyToBytes(value interface{}) ([]byte, error) {
+func AnyToBytes(value any) ([]byte, error) {
 	var sizer Sizer
 	sizer.WriteAny(value)
 	if err := sizer.Err(); err != nil {
@@ -164,5 +191,41 @@ func BytesToBytes(value []byte) ([]byte, error) {
 	buffer := make([]byte, sizer.Len())
 	encoder := NewEncoder(buffer)
 	encoder.WriteByteArray(value)
+	return buffer, nil
+}
+
+// TimeToBytes creates a `[]byte` from `value`.
+func TimeToBytes(value time.Time) ([]byte, error) {
+	sizer := NewSizer()
+	sizer.WriteTime(value)
+	buffer := make([]byte, sizer.Len())
+	encoder := NewEncoder(buffer)
+	encoder.WriteTime(value)
+	return buffer, nil
+}
+
+func SliceToBytes[T any](values []T, valF func(Writer, T)) ([]byte, error) {
+	sizer := NewSizer()
+	if err := WriteSlice(&sizer, values, valF); err != nil {
+		return nil, err
+	}
+	buffer := make([]byte, sizer.Len())
+	encoder := NewEncoder(buffer)
+	if err := WriteSlice(&encoder, values, valF); err != nil {
+		return nil, err
+	}
+	return buffer, nil
+}
+
+func MapToBytes[K comparable, V any](values map[K]V, keyF func(Writer, K), valF func(Writer, V)) ([]byte, error) {
+	sizer := NewSizer()
+	if err := WriteMap(&sizer, values, keyF, valF); err != nil {
+		return nil, err
+	}
+	buffer := make([]byte, sizer.Len())
+	encoder := NewEncoder(buffer)
+	if err := WriteMap(&encoder, values, keyF, valF); err != nil {
+		return nil, err
+	}
 	return buffer, nil
 }

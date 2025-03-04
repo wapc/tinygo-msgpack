@@ -10,6 +10,9 @@ type Encoder struct {
 	reader DataReader
 }
 
+// Ensure `*Encoder` implements `Writer`.
+var _ Writer = (*Encoder)(nil)
+
 func NewEncoder(buffer []byte) Encoder {
 	return Encoder{
 		reader: NewDataReader(buffer),
@@ -318,7 +321,7 @@ func (e *Encoder) WriteAny(value any) {
 	switch v := value.(type) {
 	case nil:
 		e.WriteNil()
-	case Codec:
+	case WriterEncoder:
 		v.Encode(e)
 	case int:
 		e.WriteInt64(int64(v))
@@ -516,6 +519,10 @@ func (e *Encoder) WriteAny(value any) {
 			e.WriteAny(v)
 		}
 	}
+}
+
+func (e *Encoder) WriteRaw(value Raw) {
+	e.reader.SetBytes(value)
 }
 
 func (e *Encoder) encodeExtLen(l int) error {
