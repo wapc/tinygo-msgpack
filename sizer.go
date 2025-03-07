@@ -9,6 +9,9 @@ type Sizer struct {
 	length uint32
 }
 
+// Ensure `*Sizer` implements `Writer`.
+var _ Writer = (*Sizer)(nil)
+
 func NewSizer() Sizer {
 	return Sizer{}
 }
@@ -282,7 +285,7 @@ func (s *Sizer) WriteAny(value any) {
 	switch v := value.(type) {
 	case nil:
 		s.WriteNil()
-	case Codec:
+	case WriterEncoder:
 		v.Encode(s)
 	case int:
 		s.WriteInt64(int64(v))
@@ -316,7 +319,7 @@ func (s *Sizer) WriteAny(value any) {
 		s.WriteTime(v)
 	case []byte:
 		s.WriteByteArray(v)
-	case []interface{}:
+	case []any:
 		size := uint32(len(v))
 		s.WriteArraySize(size)
 		for _, v := range v {
@@ -403,84 +406,84 @@ func (s *Sizer) WriteAny(value any) {
 			s.WriteString(k)
 			s.WriteString(v)
 		}
-	case map[string]interface{}:
+	case map[string]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteString(k)
 			s.WriteAny(v)
 		}
-	case map[int]interface{}:
+	case map[int]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteInt64(int64(k))
 			s.WriteAny(v)
 		}
-	case map[int8]interface{}:
+	case map[int8]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteInt8(k)
 			s.WriteAny(v)
 		}
-	case map[int16]interface{}:
+	case map[int16]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteInt16(k)
 			s.WriteAny(v)
 		}
-	case map[int32]interface{}:
+	case map[int32]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteInt32(k)
 			s.WriteAny(v)
 		}
-	case map[int64]interface{}:
+	case map[int64]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteInt64(k)
 			s.WriteAny(v)
 		}
-	case map[uint]interface{}:
+	case map[uint]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteUint64(uint64(k))
 			s.WriteAny(v)
 		}
-	case map[uint8]interface{}:
+	case map[uint8]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteUint8(k)
 			s.WriteAny(v)
 		}
-	case map[uint16]interface{}:
+	case map[uint16]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteUint16(k)
 			s.WriteAny(v)
 		}
-	case map[uint32]interface{}:
+	case map[uint32]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteUint32(k)
 			s.WriteAny(v)
 		}
-	case map[uint64]interface{}:
+	case map[uint64]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
 			s.WriteUint64(k)
 			s.WriteAny(v)
 		}
-	case map[interface{}]interface{}:
+	case map[any]any:
 		size := uint32(len(v))
 		s.WriteMapSize(size)
 		for k, v := range v {
@@ -488,6 +491,10 @@ func (s *Sizer) WriteAny(value any) {
 			s.WriteAny(v)
 		}
 	}
+}
+
+func (s *Sizer) WriteRaw(value Raw) {
+	s.length += uint32(len(value))
 }
 
 func (s *Sizer) Err() error {

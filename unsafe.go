@@ -1,10 +1,6 @@
-//go:build !purego && !appengine && !wasm && !tinygo.wasm && !wasi
-// +build !purego,!appengine,!wasm,!tinygo.wasm,!wasi
-
 package msgpack
 
 import (
-	"reflect"
 	"unsafe"
 )
 
@@ -13,8 +9,7 @@ import (
 // THIS IS EVIL CODE.
 // YOU HAVE BEEN WARNED.
 func UnsafeString(b []byte) string {
-	sh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
-	return *(*string)(unsafe.Pointer(&reflect.StringHeader{Data: sh.Data, Len: sh.Len}))
+	return unsafe.String(unsafe.SliceData(b), len(b))
 }
 
 // UnsafeBytes returns the string as a byte slice
@@ -22,9 +17,5 @@ func UnsafeString(b []byte) string {
 // THIS IS EVIL CODE.
 // YOU HAVE BEEN WARNED.
 func UnsafeBytes(s string) []byte {
-	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Len:  len(s),
-		Cap:  len(s),
-		Data: (*(*reflect.StringHeader)(unsafe.Pointer(&s))).Data,
-	}))
+	return unsafe.Slice(unsafe.StringData(s), len(s))
 }

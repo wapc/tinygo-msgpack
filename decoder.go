@@ -11,6 +11,9 @@ type Decoder struct {
 	reader DataReader
 }
 
+// Ensure `*Decoder` implements `Reader`.
+var _ Reader = (*Decoder)(nil)
+
 func NewDecoder(buffer []byte) Decoder {
 	return Decoder{
 		reader: NewDataReader(buffer),
@@ -589,6 +592,17 @@ func (d *Decoder) ReadMapSize() (uint32, error) {
 	return 0, ReadError{"bad prefix for map length"}
 }
 
+func (d *Decoder) ReadRaw() (Raw, error) {
+	start := d.reader.byteOffset
+	if err := d.Skip(); err != nil {
+		return nil, err
+	}
+	end := d.reader.byteOffset
+	bytes := d.reader.buffer[start:end]
+
+	return bytes, nil
+}
+
 func (d *Decoder) Skip() error {
 	numberOfObjectsToDiscard, err := d.getSize()
 	if err != nil {
@@ -905,7 +919,7 @@ func (d *Decoder) Err() error {
 
 func Decode[T any, PT interface {
 	*T
-	Codec
+	ReaderDecoder
 }](decoder Reader) (T, error) {
 	var inst T
 	err := ((PT)(&inst)).Decode(decoder)
@@ -914,7 +928,7 @@ func Decode[T any, PT interface {
 
 func DecodeNillable[T any, PT interface {
 	*T
-	Codec
+	ReaderDecoder
 }](decoder Reader) (PT, error) {
 	if isNil, err := decoder.IsNextNil(); isNil || err != nil {
 		return nil, err
