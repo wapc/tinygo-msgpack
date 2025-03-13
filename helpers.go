@@ -1,5 +1,9 @@
 package msgpack
 
+import (
+	"reflect"
+)
+
 func WriteSlice[T any](encoder Writer, values []T, valF func(Writer, T)) error {
 	encoder.WriteArraySize(uint32(len(values)))
 	for _, item := range values {
@@ -66,4 +70,10 @@ func ReadMap[K comparable, V any](reader Reader,
 func ReadAny(data []byte) (any, error) {
 	d := NewDecoder(data)
 	return d.ReadAny()
+}
+
+func isNil(val any) bool {
+	return val == nil ||
+		(reflect.ValueOf(val).Kind() == reflect.Ptr &&
+			reflect.ValueOf(val).IsNil())
 }
