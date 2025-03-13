@@ -315,9 +315,11 @@ func (e *Encoder) WriteMapSize(length uint32) {
 }
 
 func (e *Encoder) WriteAny(value any) {
-	if value == nil {
+	if isNil(value) {
 		e.WriteNil()
+		return
 	}
+
 	switch v := value.(type) {
 	case nil:
 		e.WriteNil()
