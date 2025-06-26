@@ -4,30 +4,30 @@ import (
 	"time"
 )
 
-type ReaderDecoder interface {
+type Decodable interface {
 	Decode(Reader) error
 }
 
-type WriterEncoder interface {
+type Encodable interface {
 	Encode(Writer) error
 }
 
-// Codec is the interface that applies to data structures that can
-// encode to and decode from the MessagPack format.
-type Codec interface {
-	ReaderDecoder
-	WriterEncoder
+// Codable is the interface that applies to data structures that can
+// encode to and decode from the MessagePack format.
+type Codable interface {
+	Decodable
+	Encodable
 }
 
 // ToBytes creates a `[]byte` from `codec`.
-func ToBytes(codec WriterEncoder) ([]byte, error) {
+func ToBytes(value Encodable) ([]byte, error) {
 	var sizer Sizer
-	if err := codec.Encode(&sizer); err != nil {
+	if err := value.Encode(&sizer); err != nil {
 		return nil, err
 	}
 	buffer := make([]byte, sizer.Len())
 	encoder := NewEncoder(buffer)
-	if err := codec.Encode(&encoder); err != nil {
+	if err := value.Encode(&encoder); err != nil {
 		return nil, err
 	}
 	return buffer, nil
@@ -38,7 +38,7 @@ func Marshal(value any) ([]byte, error) {
 	return AnyToBytes(value)
 }
 
-func Unmarshal(data []byte, value ReaderDecoder) error {
+func Unmarshal(data []byte, value Decodable) error {
 	decoder := NewDecoder(data)
 	return value.Decode(&decoder)
 }
