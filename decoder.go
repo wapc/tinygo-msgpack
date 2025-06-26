@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// Decoder provides low-level MessagePack decoding functionality.
+// It reads MessagePack data from a buffer.
 type Decoder struct {
 	reader DataReader
 }
@@ -14,12 +16,15 @@ type Decoder struct {
 // Ensure `*Decoder` implements `Reader`.
 var _ Reader = (*Decoder)(nil)
 
+// NewDecoder creates a new Decoder that reads from the provided buffer.
 func NewDecoder(buffer []byte) Decoder {
 	return Decoder{
 		reader: NewDataReader(buffer),
 	}
 }
 
+// IsNextNil checks if the next value in the buffer is a MessagePack nil.
+// It peeks at the next byte without advancing the read position.
 func (d *Decoder) IsNextNil() (bool, error) {
 	prefix, err := d.reader.PeekUint8()
 	if err != nil {
@@ -32,6 +37,7 @@ func (d *Decoder) IsNextNil() (bool, error) {
 	return false, nil
 }
 
+// ReadBool reads a MessagePack boolean value.
 func (d *Decoder) ReadBool() (bool, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
@@ -45,6 +51,8 @@ func (d *Decoder) ReadBool() (bool, error) {
 	return false, ReadError{"bad value for bool"}
 }
 
+// ReadNillableBool reads a MessagePack boolean value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableBool() (*bool, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -57,6 +65,8 @@ func (d *Decoder) ReadNillableBool() (*bool, error) {
 	return &val, err
 }
 
+// ReadInt8 reads a MessagePack int8 value.
+// Performs range checking to ensure the value fits in 8 bits.
 func (d *Decoder) ReadInt8() (int8, error) {
 	v, err := d.ReadInt64()
 	if err != nil {
@@ -66,12 +76,14 @@ func (d *Decoder) ReadInt8() (int8, error) {
 		return int8(v), nil
 	}
 	return 0, ReadError{
-		"interger overflow: value = " +
+		"integer overflow: value = " +
 			strconv.FormatInt(v, 10) +
 			"; bits = 8",
 	}
 }
 
+// ReadNillableInt8 reads a MessagePack int8 value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableInt8() (*int8, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -84,6 +96,8 @@ func (d *Decoder) ReadNillableInt8() (*int8, error) {
 	return &val, err
 }
 
+// ReadInt16 reads a MessagePack int16 value.
+// Performs range checking to ensure the value fits in 16 bits.
 func (d *Decoder) ReadInt16() (int16, error) {
 	v, err := d.ReadInt64()
 	if err != nil {
@@ -93,12 +107,14 @@ func (d *Decoder) ReadInt16() (int16, error) {
 		return int16(v), nil
 	}
 	return 0, ReadError{
-		"interger overflow: value = " +
+		"integer overflow: value = " +
 			strconv.FormatInt(v, 10) +
 			"; bits = 16",
 	}
 }
 
+// ReadNillableInt16 reads a MessagePack int16 value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableInt16() (*int16, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -111,6 +127,8 @@ func (d *Decoder) ReadNillableInt16() (*int16, error) {
 	return &val, err
 }
 
+// ReadInt32 reads a MessagePack int32 value.
+// Performs range checking to ensure the value fits in 32 bits.
 func (d *Decoder) ReadInt32() (int32, error) {
 	v, err := d.ReadInt64()
 	if err != nil {
@@ -120,12 +138,14 @@ func (d *Decoder) ReadInt32() (int32, error) {
 		return int32(v), nil
 	}
 	return 0, ReadError{
-		"interger overflow: value = " +
+		"integer overflow: value = " +
 			strconv.FormatInt(v, 10) +
 			"; bits = 32",
 	}
 }
 
+// ReadNillableInt32 reads a MessagePack int32 value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableInt32() (*int32, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -138,6 +158,8 @@ func (d *Decoder) ReadNillableInt32() (*int32, error) {
 	return &val, err
 }
 
+// ReadInt64 reads a MessagePack int64 value.
+// Supports all MessagePack integer formats including fixint and typed integers.
 func (d *Decoder) ReadInt64() (int64, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
@@ -165,6 +187,8 @@ func (d *Decoder) ReadInt64() (int64, error) {
 	}
 }
 
+// ReadNillableInt64 reads a MessagePack int64 value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableInt64() (*int64, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -177,6 +201,8 @@ func (d *Decoder) ReadNillableInt64() (*int64, error) {
 	return &val, err
 }
 
+// ReadUint8 reads a MessagePack uint8 value.
+// Performs range checking to ensure the value fits in 8 bits.
 func (d *Decoder) ReadUint8() (uint8, error) {
 	v, err := d.ReadUint64()
 	if err != nil {
@@ -186,12 +212,14 @@ func (d *Decoder) ReadUint8() (uint8, error) {
 		return uint8(v), nil
 	}
 	return 0, ReadError{
-		"interger overflow: value = " +
+		"integer overflow: value = " +
 			strconv.FormatUint(v, 10) +
 			"; bits = 8",
 	}
 }
 
+// ReadNillableUint8 reads a MessagePack uint8 value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableUint8() (*uint8, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -204,6 +232,8 @@ func (d *Decoder) ReadNillableUint8() (*uint8, error) {
 	return &val, err
 }
 
+// ReadUint16 reads a MessagePack uint16 value.
+// Performs range checking to ensure the value fits in 16 bits.
 func (d *Decoder) ReadUint16() (uint16, error) {
 	v, err := d.ReadUint64()
 	if err != nil {
@@ -213,12 +243,14 @@ func (d *Decoder) ReadUint16() (uint16, error) {
 		return uint16(v), nil
 	}
 	return 0, ReadError{
-		"interger overflow: value = " +
+		"integer overflow: value = " +
 			strconv.FormatUint(v, 10) +
 			"; bits = 16",
 	}
 }
 
+// ReadNillableUint16 reads a MessagePack uint16 value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableUint16() (*uint16, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -231,6 +263,8 @@ func (d *Decoder) ReadNillableUint16() (*uint16, error) {
 	return &val, err
 }
 
+// ReadUint32 reads a MessagePack uint32 value.
+// Performs range checking to ensure the value fits in 32 bits.
 func (d *Decoder) ReadUint32() (uint32, error) {
 	v, err := d.ReadUint64()
 	if err != nil {
@@ -240,12 +274,14 @@ func (d *Decoder) ReadUint32() (uint32, error) {
 		return uint32(v), nil
 	}
 	return 0, ReadError{
-		"interger overflow: value = " +
+		"integer overflow: value = " +
 			strconv.FormatUint(v, 10) +
 			"; bits = 32",
 	}
 }
 
+// ReadNillableUint32 reads a MessagePack uint32 value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableUint32() (*uint32, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -258,6 +294,8 @@ func (d *Decoder) ReadNillableUint32() (*uint32, error) {
 	return &val, err
 }
 
+// ReadUint64 reads a MessagePack uint64 value.
+// Supports all MessagePack unsigned integer formats including fixint and typed integers.
 func (d *Decoder) ReadUint64() (uint64, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
@@ -315,6 +353,8 @@ func (d *Decoder) ReadUint64() (uint64, error) {
 	}
 }
 
+// ReadNillableUint64 reads a MessagePack uint64 value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableUint64() (*uint64, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -327,21 +367,26 @@ func (d *Decoder) ReadNillableUint64() (*uint64, error) {
 	return &val, err
 }
 
+// ReadFloat32 reads a MessagePack float32 value.
+// Also accepts float64 values and converts them to float32.
 func (d *Decoder) ReadFloat32() (float32, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
 		return 0, err
 	}
 
-	if prefix == FormatFloat32 {
+	switch prefix {
+	case FormatFloat32:
 		return d.reader.GetFloat32()
-	} else if prefix == FormatFloat64 {
+	case FormatFloat64:
 		v, err := d.reader.GetFloat64()
 		return float32(v), err
 	}
 	return 0, ReadError{"bad prefix for float32"}
 }
 
+// ReadNillableFloat32 reads a MessagePack float32 value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableFloat32() (*float32, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -354,6 +399,7 @@ func (d *Decoder) ReadNillableFloat32() (*float32, error) {
 	return &val, err
 }
 
+// ReadFloat64 reads a MessagePack float64 value.
 func (d *Decoder) ReadFloat64() (float64, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
@@ -366,6 +412,8 @@ func (d *Decoder) ReadFloat64() (float64, error) {
 	return 0, ReadError{"bad prefix for float64"}
 }
 
+// ReadNillableFloat64 reads a MessagePack float64 value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableFloat64() (*float64, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -452,11 +500,15 @@ func (d *Decoder) decodeTime(extLen uint32) (time.Time, error) {
 	}
 }
 
+// ReadString reads a MessagePack string value.
+// Supports both fixed and variable length string formats.
 func (d *Decoder) ReadString() (string, error) {
 	strLen, err := d.readStringLength()
 	return d.readString(strLen, err)
 }
 
+// ReadNillableString reads a MessagePack string value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableString() (*string, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -469,6 +521,8 @@ func (d *Decoder) ReadNillableString() (*string, error) {
 	return &val, err
 }
 
+// readStringLength reads the length prefix for a MessagePack string.
+// Supports fixed string, fixed array, and variable length string formats.
 func (d *Decoder) readStringLength() (uint32, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
@@ -496,6 +550,8 @@ func (d *Decoder) readStringLength() (uint32, error) {
 	return 0, ReadError{"bad prefix for string length"}
 }
 
+// readString reads a string of the specified length from the buffer.
+// Uses unsafe string conversion for performance.
 func (d *Decoder) readString(strLen uint32, err error) (string, error) {
 	if err != nil {
 		return "", err
@@ -507,6 +563,8 @@ func (d *Decoder) readString(strLen uint32, err error) (string, error) {
 	return UnsafeString(strBytes), nil
 }
 
+// ReadByteArray reads a MessagePack binary array value.
+// Returns the raw bytes without any conversion.
 func (d *Decoder) ReadByteArray() ([]byte, error) {
 	binLen, err := d.readBinLength()
 	if err != nil {
@@ -519,6 +577,8 @@ func (d *Decoder) ReadByteArray() ([]byte, error) {
 	return binBytes, nil
 }
 
+// ReadNillableByteArray reads a MessagePack binary array value or nil.
+// Returns nil if the next value is MessagePack nil.
 func (d *Decoder) ReadNillableByteArray() ([]byte, error) {
 	isNil, err := d.IsNextNil()
 	if isNil || err != nil {
@@ -527,6 +587,8 @@ func (d *Decoder) ReadNillableByteArray() ([]byte, error) {
 	return d.ReadByteArray()
 }
 
+// readBinLength reads the length prefix for a MessagePack binary array.
+// Supports fixed array and variable length binary formats.
 func (d *Decoder) readBinLength() (uint32, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
@@ -552,6 +614,8 @@ func (d *Decoder) readBinLength() (uint32, error) {
 	return 0, ReadError{"bad prefix for binary length"}
 }
 
+// ReadArraySize reads the size prefix for a MessagePack array.
+// Returns the number of elements in the array, or 0 for nil arrays.
 func (d *Decoder) ReadArraySize() (uint32, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
@@ -572,6 +636,8 @@ func (d *Decoder) ReadArraySize() (uint32, error) {
 	return 0, ReadError{"bad prefix for array length"}
 }
 
+// ReadMapSize reads the size prefix for a MessagePack map.
+// Returns the number of key-value pairs in the map, or 0 for nil maps.
 func (d *Decoder) ReadMapSize() (uint32, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
@@ -592,6 +658,8 @@ func (d *Decoder) ReadMapSize() (uint32, error) {
 	return 0, ReadError{"bad prefix for map length"}
 }
 
+// ReadRaw reads the next MessagePack value as raw bytes without decoding.
+// Returns the complete MessagePack representation of the value.
 func (d *Decoder) ReadRaw() (Raw, error) {
 	start := d.reader.byteOffset
 	if err := d.Skip(); err != nil {
@@ -603,6 +671,8 @@ func (d *Decoder) ReadRaw() (Raw, error) {
 	return bytes, nil
 }
 
+// Skip advances the decoder past the next MessagePack value.
+// Recursively skips nested structures like arrays and maps.
 func (d *Decoder) Skip() error {
 	numberOfObjectsToDiscard, err := d.getSize()
 	if err != nil {
@@ -619,6 +689,8 @@ func (d *Decoder) Skip() error {
 	return nil
 }
 
+// getSize determines the number of objects to skip for the current MessagePack value.
+// Handles all MessagePack format types and returns the count of nested objects.
 func (d *Decoder) getSize() (uint32, error) {
 	leadByte, err := d.reader.GetUint8()
 	if err != nil {
@@ -719,6 +791,8 @@ func (d *Decoder) getSize() (uint32, error) {
 	return objectsToDiscard, nil
 }
 
+// ReadAny reads any MessagePack value and returns it as an interface{}.
+// Supports all MessagePack types including primitive types, arrays, and maps.
 func (d *Decoder) ReadAny() (any, error) {
 	prefix, err := d.reader.GetUint8()
 	if err != nil {
@@ -839,6 +913,8 @@ func (d *Decoder) ReadAny() (any, error) {
 	return nil, ReadError{"bad value for bool"}
 }
 
+// readArray populates an array with values read from the MessagePack stream.
+// Reads the specified number of elements using ReadAny.
 func (d *Decoder) readArray(array []any) error {
 	for i := 0; i < len(array); i++ {
 		value, err := d.ReadAny()
@@ -850,6 +926,8 @@ func (d *Decoder) readArray(array []any) error {
 	return nil
 }
 
+// readMap populates a map with key-value pairs read from the MessagePack stream.
+// Reads the specified number of pairs using ReadAny for both keys and values.
 func (d *Decoder) readMap(m map[any]any, length uint32) error {
 	for i := uint32(0); i < length; i++ {
 		key, err := d.ReadAny()
@@ -865,6 +943,8 @@ func (d *Decoder) readMap(m map[any]any, length uint32) error {
 	return nil
 }
 
+// extHeader reads the extension header for MessagePack extension types.
+// Returns the extension ID and length from the extension header.
 func (d *Decoder) extHeader(c byte) (int8, uint32, error) {
 	extLen, err := d.parseExtLen(c)
 	if err != nil {
@@ -879,6 +959,8 @@ func (d *Decoder) extHeader(c byte) (int8, uint32, error) {
 	return int8(extID), extLen, nil
 }
 
+// readCode reads a single byte from the MessagePack stream.
+// Used for reading extension type IDs.
 func (d *Decoder) readCode() (byte, error) {
 	c, err := d.reader.GetUint8()
 	if err != nil {
@@ -887,6 +969,8 @@ func (d *Decoder) readCode() (byte, error) {
 	return c, nil
 }
 
+// parseExtLen determines the length of an extension based on the format byte.
+// Supports all MessagePack extension length formats.
 func (d *Decoder) parseExtLen(c byte) (uint32, error) {
 	switch c {
 	case FormatFixExt1:
@@ -913,22 +997,29 @@ func (d *Decoder) parseExtLen(c byte) (uint32, error) {
 	}
 }
 
+// Err returns any error that occurred during decoding.
+// Returns the underlying error from the data reader.
 func (d *Decoder) Err() error {
 	return d.reader.Err()
 }
 
+// Decode is a generic function that decodes a MessagePack value into a type T.
+// The type T must implement the Decodable interface via its pointer receiver.
 func Decode[T any, PT interface {
 	*T
-	ReaderDecoder
+	Decodable
 }](decoder Reader) (T, error) {
 	var inst T
 	err := ((PT)(&inst)).Decode(decoder)
 	return inst, err
 }
 
+// DecodeNillable is a generic function that decodes a MessagePack value into a type T or returns nil.
+// The type T must implement the Decodable interface via its pointer receiver.
+// Returns nil if the next value is MessagePack nil.
 func DecodeNillable[T any, PT interface {
 	*T
-	ReaderDecoder
+	Decodable
 }](decoder Reader) (PT, error) {
 	if isNil, err := decoder.IsNextNil(); isNil || err != nil {
 		return nil, err
@@ -941,31 +1032,50 @@ func DecodeNillable[T any, PT interface {
 
 ////////////////////
 
+// isFixedInt checks if a byte represents a MessagePack fixed positive integer.
+// Fixed positive integers have the most significant bit set to 0.
+//
 //go:inline
 func isFixedInt(u byte) bool {
 	return u>>7 == 0
 }
 
+// isNegativeFixedInt checks if a byte represents a MessagePack fixed negative integer.
+// Fixed negative integers have the 3 most significant bits set to 111.
+//
 //go:inline
 func isNegativeFixedInt(u byte) bool {
 	return (u & 0xe0) == FormatNegativeFixInt
 }
 
+// isFixedMap checks if a byte represents a MessagePack fixed map.
+// Fixed maps have the 4 most significant bits set to 1000.
+//
 //go:inline
 func isFixedMap(u byte) bool {
 	return (u & 0xf0) == FormatFixMap
 }
 
+// isFixedArray checks if a byte represents a MessagePack fixed array.
+// Fixed arrays have the 4 most significant bits set to 1001.
+//
 //go:inline
 func isFixedArray(u byte) bool {
 	return (u & 0xf0) == FormatFixArray
 }
 
+// isFixedString checks if a byte represents a MessagePack fixed string.
+// Fixed strings have the 3 most significant bits set to 101.
+//
 //go:inline
 func isFixedString(u byte) bool {
 	return (u & 0xe0) == FormatFixString
 }
 
+// isString checks if a byte represents any MessagePack string format.
+// Includes fixed strings, variable length strings, and arrays (for compatibility).
+//
+//go:inline
 func isString(u byte) bool {
 	return isFixedString(u) ||
 		u == FormatString8 ||
@@ -976,10 +1086,12 @@ func isString(u byte) bool {
 		u == FormatArray32
 }
 
+// ReadError represents an error that occurred during MessagePack decoding.
 type ReadError struct {
 	message string
 }
 
+// Error returns the error message for a ReadError.
 func (e ReadError) Error() string {
 	return e.message
 }
