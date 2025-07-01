@@ -341,6 +341,7 @@ func (s *Sizer) WriteNillableFloat64(value *float64) {
 func (s *Sizer) WriteAny(value any) {
 	if value == nil {
 		s.WriteNil()
+		return
 	}
 	switch v := value.(type) {
 	case nil:
